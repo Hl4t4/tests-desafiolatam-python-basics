@@ -1,6 +1,6 @@
-from lib_desafio02 import input_number
-import argparse
+import argparse # Libreria usada para obtener argumentos del inicio de la aplicacion
 
+# Calcula segun el indice en que categoria queda
 def imc_calculator_index (imc):
     match imc:
         case float(x) if x < 18.5:
@@ -18,10 +18,12 @@ def imc_calculator_index (imc):
         case _:
             return "Valor imc no valido"
 
+# Calculo del imc
 def imc_calculator (weight, height):
     return weight / (height/100)**2 
 
 if __name__ == "__main__":
+    #Obtencion de argumentos, que deben ser 2
     parser = argparse.ArgumentParser(description="Calculadora IMC ingresar peso en Kg y altura en cm") # add description later
     parser.add_argument("weight", type=float)
     parser.add_argument("height", type=float)
@@ -30,8 +32,10 @@ if __name__ == "__main__":
     weight = args.weight
     height = args.height
 
+    #Calculo del imc y en que categoria queda
     imc = imc_calculator(weight, height)
     imc_name = imc_calculator_index(imc)
 
+    #Impresion de los resultados
     print(f'Su IMC es {imc:.2f}')
     print("La clasificacion OMS es " + imc_name)
