@@ -3,10 +3,12 @@ import getpass #Para passwords
 import re # Para expresiones regulares
 import timeit #Testing de tiempos, no necesario realmente
 
+# Se inicia la expresion regular a usar y pide la contraseña, para luego hacer un match
 pattern = re.compile("[a-z]+")
 password = getpass.getpass("Ingrese la contraseña: ")
 match = pattern.match(password)
 
+# Se pide contraseña nueva hasta que se entrege una valida que sea solo letras sin contar la ñ
 while (not match):
     password = getpass.getpass("Entrada no valida solo se aceptan letras mayusculas y minusculas. ").lower()
     match = pattern.match(password)

@@ -1,5 +1,6 @@
 import argparse # Libreria usada para obtener argumentos del inicio de la aplicacion
 
+# Diccionario entregado
 ventas = {"Enero": 15000,
 "Febrero": 22000,
 "Marzo": 12000,
@@ -21,5 +22,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     mayor = args.mayor
+
+    # Comprehension para filtrar segun el valor entregado
     ventas_filtradas = ({mes:venta for mes,venta in ventas.items() if venta > mayor})
     print(ventas_filtradas)
