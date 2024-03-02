@@ -37,5 +37,5 @@ if __name__ == "__main__":
     imc_name = imc_calculator_index(imc)
 
     #Impresion de los resultados
-    print(f'Su IMC es {imc:.2f}')
+    print(f'Su IMC es {imc:.2f} [Kg/m^2]')
     print("La clasificacion OMS es " + imc_name)
