@@ -27,7 +27,7 @@ print(result3)
 
 paises = ["Mexico", "Chile", "Argentina", "Peru"]
 usuarios= [70, 50, 55, 80]
-result4 = ({pais:usuario for pais,usuario in zip(paises,usuarios) if usuario >= 60})
+result4 = ({pais:usuario for pais,usuario in zip(paises,usuarios) if usuario < 60})
 print(result4)
 
 #Ventas
