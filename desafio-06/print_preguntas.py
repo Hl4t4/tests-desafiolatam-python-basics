@@ -1,10 +1,13 @@
 import preguntas as p
+from string import ascii_uppercase
 
 def print_pregunta(enunciado, alternativas):
     
     # Imprimir enunciado y alternativas
     ###############################################################
-    pass
+    print(enunciado)
+    print("Alternativas")
+    [print(f'{ascii_uppercase[pos]}. {alternativa[0]}') for pos, alternativa in enumerate(alternativas)]
     
     
     
