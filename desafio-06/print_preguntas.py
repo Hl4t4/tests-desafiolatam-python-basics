@@ -11,7 +11,6 @@ def print_pregunta(enunciado, alternativas):
     
     
     
-    
     ###############################################################
         
 if __name__ == '__main__':
