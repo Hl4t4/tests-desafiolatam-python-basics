@@ -1,7 +1,10 @@
+#Valores base que pueden ser cambiados
 masas = ["Masa Tradicional", "Masa Delgada", "Masa con Bordes de Queso"]
 salsas = ["Salsa de Tomate", "Salsa Alfredo", "Salsa Barbecue", "Salsa Pesto"]
 ingredientes = ["Tomate", "Champiñones", "Aceituna", "Cebolla", "Pollo", "Jamon", "Carne", "Tocino", "Queso"]
 
+
+#Importados los modulos
 from change import change_masa
 from change import change_salsa
 from timing import pizza_timing
@@ -11,6 +14,7 @@ from remove import remove_ingrediente
 from remove import remove_ingredientes
 import show
 import constructor
+import sys
 
 # def pizza_constructor(ingredientes = {}):
 #     ingredientes_base = ({ingrediente:False for ingrediente in ingredientes})
@@ -142,4 +146,5 @@ import constructor
 # print(new_pizza['ingredientes'].get("tomate", "no funciona"))
 # print(new_pizza)
 if __name__ == "__main__":
-    show.show_menu(ingredientes, salsas, masas, constructor.pizza_constructor, change_masa, change_salsa, add_ingrediente, remove_ingrediente)
+    clear = 'cls' if sys.platform == 'win32' else 'clear'
+    show.show_menu(ingredientes, salsas, masas, constructor.pizza_constructor, change_masa, change_salsa, add_ingrediente, remove_ingrediente, clear)
