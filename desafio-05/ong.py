@@ -1,15 +1,18 @@
+#Funcion recursiva para obtener factorial
 def factorial(n):
     if n <= 1: # Se entiende que deberia ser hasta 1, pero esto abarca tambien errores asi
         return 1
     else:
         return factorial(n-1)*n
 
+#Funcion recursiva para obtener productoria
 def productoria(lista):
     if len(lista) == 0:
         return 1
     else:
         return lista.pop()*productoria(lista)
 
+#Funcion que separa las entradas, y luego asigna la funcion adecuada a calcular
 def calcular (**kargs):
     for key, value in kargs.items():
         if 'fact_' in key:
