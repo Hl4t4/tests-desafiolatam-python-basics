@@ -5,6 +5,8 @@ from icon import icon_svg
 import random
 import os
 
+
+
 def request_get(url):
     return json.loads(requests.get(url).text)
 
@@ -13,38 +15,56 @@ def unpack_response(response_text):
     return dictionary
 
 def update_template(string_template, name, new_string):
-    # print((string_template.template))
     return string_template.safe_substitute({name: new_string})
 
 def template_html_base(base):
     return update_template(Template("$base"), "base", base)
 
-def image_pack(image_template, image_pack):
+def image_pack_stringify(main_image_template, thumb_image_template, image_pack):
     new_strings = []
+    i = 0
     for image in image_pack:
-        new_string = str(image_template)
+        if i == 0:
+            new_string = str(main_image_template)
+            new_string = update_template(Template(new_string), "full", image["images"]["full"])
+        else:
+            new_string = str(thumb_image_template)
+            new_string = update_template(Template(new_string), "thumb", image["images"]["thumb"])
+        if i == len(image_pack)-1:
+            new_string = update_template(Template(new_string), "last", "d-none d-lg-none d-xxl-flex")
+        else:
+            new_string = update_template(Template(new_string), "last", "")
+        i += 1
         new_string = update_template(Template(new_string), "uid", image["uid"])
         new_string = update_template(Template(new_string), "spanish", image["name"]["spanish"])
         new_string = update_template(Template(new_string), "english", image["name"]["english"])
         new_string = update_template(Template(new_string), "latin", image["name"]["latin"])
-        new_string = update_template(Template(new_string), "main", image["images"]["main"])
-        new_string = update_template(Template(new_string), "thumb", image["images"]["thumb"])
         new_strings.append(new_string)
     return "\n".join(new_strings)
 
-def substitute_image_pack(carousel_template, image_pack, active = False):
-    pass
-
+def substitute_image_pack(carousel_item_template, main_image_template, thumb_image_template, image_pack):
+    carousels = []
+    active = True
+    while (image_pack != []):
+        image_pack_to_substitute = []
+        if len(image_pack) < 6:
+            for i in range(len(image_pack)):
+                image_pack_to_substitute.append(image_pack.pop())
+        else:
+            for i in range(6):
+                image_pack_to_substitute.append(image_pack.pop())
+        images = image_pack_stringify(main_image_template, thumb_image_template, image_pack_to_substitute)
+        images = update_template(Template(carousel_item_template), "images", images)
+        if active:
+            images = update_template(Template(images), "active", "active")
+            active = False
+        else:
+            images = update_template(Template(images), "active", "")
+            images = update_template(Template(images), "lazy", 'loading="lazy"') #Agregado para que las imagenes carguen solo de forma lazy
+        carousels.append(images)
+    return "\n".join(carousels)
 
 url = "https://aves.ninjas.cl/api/birds"
-response_text = request_get(url)
-# response = unpack_response(response_text[:5])
-response = unpack_response(response_text)
-#response = random.shuffle(response)
-print(response[0])
-random.shuffle(response)
-print(response[0])
-#print(unpack_response(response_text).items())
 
 base = """<!DOCTYPE html>
 <html lang="es">
@@ -84,13 +104,21 @@ header ="""<nav class = "navbar navbar-expand-lg px-md-5">
 
 # $active = "active" | ""
 
+section ="""<div class="row py-5">
+                    \t<div class="col">
+                    \t<h1 class="text-center pb-4">Bienvenidos a Birds from Chile (BFC)!</h1>
+                    \t\t<div id="headerCarousel" class="carousel slide" data-bs-ride="carousel">
+                    \t\t\t<div class="carousel-inner">
+                    \t\t\t\t$carousels
+                    \t\t\t</div>
+                    \t\t</div>
+                    \t</div>
+                    </div>"""
+
 carousel_item_template="""\t\t\t\t<div class="carousel-item $active" data-bs-interval="3000">
                     \t\t\t\t\t<div class="container-fluid">
                     \t\t\t\t\t\t<div class="row">
-                    \t\t\t\t\t\t\t$main_images
-                    \t\t\t\t\t\t\t<div class="col-md-4 col-xs-12 col-sm-12 col-12 mt-md-0 mt-sm-3 mt-3">
-                    \t\t\t\t\t\t\t\t<div class="row d-flex h-100 ps-md-3 ps-sm-1 ps-1 row-gap-2" style="flex-direction: column-reverse; justify-content: space-between;">
-                    \t\t\t\t\t\t\t\t\t$thumb_images
+                    \t\t\t\t\t\t\t$images
                     \t\t\t\t\t\t\t\t</div>
                     \t\t\t\t\t\t\t</div>
                     \t\t\t\t\t\t</div>
@@ -98,16 +126,18 @@ carousel_item_template="""\t\t\t\t<div class="carousel-item $active" data-bs-int
                     \t\t\t\t</div>"""
 
 main_image_template = """\t\t\t\t\t\t\t<div class="col-md-8 col-xs-12 col-sm-12 col-12 border border-danger px-0 text-center">
-                    \t\t\t\t\t\t\t\t<img class="img-fluid pb-3" src="$main" alt="$uid">
+                    \t\t\t\t\t\t\t\t<img $lazy class="img-fluid pb-3" src="$full" alt="$uid">
                     \t\t\t\t\t\t\t\t<h2>Nombre Especie: <i>$spanish</i></h2>
                     \t\t\t\t\t\t\t\t<h2>Species Name: <i>$english</i></h2>
-                    \t\t\t\t\t\t\t\t<h2>Nombre Cientifico: <i>latin</i></h2>
-                    \t\t\t\t\t\t\t</div>"""
+                    \t\t\t\t\t\t\t\t<h2>Nombre Cientifico: <i>$latin</i></h2>
+                    \t\t\t\t\t\t\t</div>
+                    \t\t\t\t\t\t\t<div class="col-md-4 col-xs-12 col-sm-12 col-12 mt-md-0 mt-sm-3 mt-3">
+                    \t\t\t\t\t\t\t\t<div class="row d-flex h-100 ps-md-3 ps-sm-1 ps-1 row-gap-2" style="flex-direction: column-reverse; justify-content: space-between;">"""
 
 # $last = "d-none d-lg-none d-xxl-flex" | ""
 
 thumb_image_template = """\t\t\t\t\t\t\t\t\t<div class="row $last border border-danger ps-0 mx-0">
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-7 px-0">
+                    \t\t\t\t\t\t\t\t\t\t<div $lazy class="col-7 px-0">
                     \t\t\t\t\t\t\t\t\t\t\t<img class="img-fluid" src="$thumb" alt="$uid">
                     \t\t\t\t\t\t\t\t\t\t</div>
                     \t\t\t\t\t\t\t\t\t\t<div class="col-5 pe-0 align-self-center">
@@ -116,148 +146,6 @@ thumb_image_template = """\t\t\t\t\t\t\t\t\t<div class="row $last border border-
                     \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Cientifico: $latin</p>
                     \t\t\t\t\t\t\t\t\t\t</div>
                     \t\t\t\t\t\t\t\t\t</div>"""
-
-section ="""<div class="row py-5">
-                    \t<div class="col">
-                    \t<h1 class="text-center pb-4">Bienvenidos a Birds from Chile (BFC)!</h1>
-                    \t\t<div id="headerCarousel" class="carousel slide" data-bs-ride="carousel">
-                    \t\t\t<div class="carousel-inner">
-                    \t\t\t\t<div class="carousel-item active" data-bs-interval="3000">
-                    \t\t\t\t\t<div class="container-fluid">
-                    \t\t\t\t\t\t<div class="row">
-                    \t\t\t\t\t\t\t<div class="col-md-8 col-xs-12 col-sm-12 col-12 border border-danger px-0 text-center">
-                    \t\t\t\t\t\t\t\t<img class="img-fluid pb-3" src="https://aves.ninjas.cl/api/site/assets/files/3099/17082018024245aguilucho_chico_tomas_rivas_web.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t<h2>Nombre Especie: <i>Aguilucho Chico</i></h2>
-                    \t\t\t\t\t\t\t\t<h2>Species Name: <i>White-throated Hawk</i></h2>
-                    \t\t\t\t\t\t\t\t<h2>Nombre Cientifico: <i>Buteo albigula</i></h2>
-                    \t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t<div class="col-md-4 col-xs-12 col-sm-12 col-12 mt-md-0 mt-sm-3 mt-3">
-                    \t\t\t\t\t\t\t\t<div class="row d-flex h-100 ps-md-3 ps-sm-1 ps-1 row-gap-2" style="flex-direction: column-reverse; justify-content: space-between;">
-                    \t\t\t\t\t\t\t\t\t<div class="row border border-danger ps-0 mx-0">
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-7 px-0">
-                    \t\t\t\t\t\t\t\t\t\t\t<img class="img-fluid" src="https://aves.ninjas.cl/api/site/assets/files/3102/18082018072023pato_juarjual_pedro_valencia_web.200x0.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-5 pe-0 align-self-center">
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Especie: Aguilucho Chico</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Species Name: White-throated Hawk</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Cientifico: Buteo albigula</p>
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t<div class="row border border-danger ps-0 mx-0">
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-7 px-0">
-                    \t\t\t\t\t\t\t\t\t\t\t<img class="img-fluid" src="https://aves.ninjas.cl/api/site/assets/files/3109/13082018073638gaviota_austral_paula_de_marco_web.200x0.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-5 pe-0 align-self-center">
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Especie: Aguilucho Chico</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Species Name: White-throated Hawk</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Cientifico: Buteo albigula</p>
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t<div class="row border border-danger ps-0 mx-0">
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-7 px-0">
-                    \t\t\t\t\t\t\t\t\t\t\t<img class="img-fluid" src="https://aves.ninjas.cl/api/site/assets/files/3111/18082018074355perdiz_chilena_pedro_valencia_web.200x0.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-5 pe-0 align-self-center">
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Especie: Aguilucho Chico</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Species Name: White-throated Hawk</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Cientifico: Buteo albigula</p>
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t<div class="row border border-danger ps-0 mx-0">
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-7 px-0">
-                    \t\t\t\t\t\t\t\t\t\t\t<img class="img-fluid" src="https://aves.ninjas.cl/api/site/assets/files/3115/13082018100708tucuquere_camilo_maldonado_marin_web.200x0.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-5 pe-0 align-self-center">
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Especie: Aguilucho Chico</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Species Name: White-throated Hawk</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Cientifico: Buteo albigula</p>
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t<div class="row d-none d-lg-none d-xxl-flex border border-danger ps-0 mx-0">
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-7 px-0">
-                    \t\t\t\t\t\t\t\t\t\t\t<img class="img-fluid" src="https://aves.ninjas.cl/api/site/assets/files/3102/18082018072023pato_juarjual_pedro_valencia_web.200x0.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-5 pe-0 align-self-center">
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Especie: Aguilucho Chico</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Species Name: White-throated Hawk</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Cientifico: Buteo albigula</p>
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t</div>
-                    \t\t\t\t\t</div>
-                    \t\t\t\t</div>
-                    \t\t\t\t<div class="carousel-item data-bs-interval="3000"">
-                    \t\t\t\t\t<div class="container-fluid">
-                    \t\t\t\t\t\t<div class="row">
-                    \t\t\t\t\t\t\t<div class="col-md-8 col-xs-12 col-sm-12 col-12 border border-danger px-0 text-center">
-                    \t\t\t\t\t\t\t\t<img class="img-fluid pb-3" src="https://aves.ninjas.cl/api/site/assets/files/3184/19082018011819canquen_marcos_baumann_web.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t<h2>Nombre Especie: <i>Aguilucho Chico</i></h2>
-                    \t\t\t\t\t\t\t\t<h2>Species Name: <i>White-throated Hawk</i></h2>
-                    \t\t\t\t\t\t\t\t<h2>Nombre Cientifico: <i>Buteo albigula</i></h2>
-                    \t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t<div class="col-md-4 col-xs-12 col-sm-12 col-12 mt-md-0 mt-sm-3 mt-3">
-                    \t\t\t\t\t\t\t\t<div class="row d-flex h-100 ps-md-3 ps-sm-1 ps-1 row-gap-2" style="flex-direction: column-reverse; justify-content: space-between;">
-                    \t\t\t\t\t\t\t\t\t<div class="row border border-danger ps-0 mx-0">
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-7 px-0">
-                    \t\t\t\t\t\t\t\t\t\t\t<img class="img-fluid" src="https://aves.ninjas.cl/api/site/assets/files/3188/18082018081428picurio_pedro_valencia_web.200x0.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-5 pe-0 align-self-center">
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Especie: Aguilucho Chico</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Species Name: White-throated Hawk</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Cientifico: Buteo albigula</p>
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t<div class="row border border-danger ps-0 mx-0">
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-7 px-0">
-                    \t\t\t\t\t\t\t\t\t\t\t<img class="img-fluid" src="https://aves.ninjas.cl/api/site/assets/files/3188/18082018081428picurio_pedro_valencia_web.200x0.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-5 pe-0 align-self-center">
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Especie: Aguilucho Chico</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Species Name: White-throated Hawk</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Cientifico: Buteo albigula</p>
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t<div class="row border border-danger ps-0 mx-0">
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-7 px-0">
-                    \t\t\t\t\t\t\t\t\t\t\t<img class="img-fluid" src="https://aves.ninjas.cl/api/site/assets/files/3188/18082018081428picurio_pedro_valencia_web.200x0.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-5 pe-0 align-self-center">
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Especie: Aguilucho Chico</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Species Name: White-throated Hawk</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Cientifico: Buteo albigula</p>
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t<div class="row border border-danger ps-0 mx-0">
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-7 px-0">
-                    \t\t\t\t\t\t\t\t\t\t\t<img class="img-fluid" src="https://aves.ninjas.cl/api/site/assets/files/3188/18082018081428picurio_pedro_valencia_web.200x0.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-5 pe-0 align-self-center">
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Especie: Aguilucho Chico</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Species Name: White-throated Hawk</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Cientifico: Buteo albigula</p>
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t<div class="row d-none d-lg-none d-xxl-flex border border-danger ps-0 mx-0">
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-7 px-0">
-                    \t\t\t\t\t\t\t\t\t\t\t<img class="img-fluid" src="https://aves.ninjas.cl/api/site/assets/files/3102/18082018072023pato_juarjual_pedro_valencia_web.200x0.jpg" alt="slider-1">
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t\t<div class="col-5 pe-0 align-self-center">
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Especie: Aguilucho Chico</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Species Name: White-throated Hawk</p>
-                    \t\t\t\t\t\t\t\t\t\t\t<p>Nombre Cientifico: Buteo albigula</p>
-                    \t\t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t\t</div>
-                    \t\t\t\t\t\t</div>
-                    \t\t\t\t\t</div>
-                    \t\t\t\t</div>
-                    \t\t\t</div>
-                    \t\t</div>
-                    \t</div>
-                    </div>"""
 
 footer = """<div class="row text-light py-md-4 py-4 pb-2 px-1 px-md-5">
                 \t<div class="col-6 text-start ps-2 ps-md-5">
@@ -279,6 +167,7 @@ footer = """<div class="row text-light py-md-4 py-4 pb-2 px-1 px-md-5">
                 \t</div>
                 </div>"""
 
+
 body = """<header id="inicio" class="container-fluid bg-danger text-white">
         \t$header
         </header>
@@ -293,17 +182,19 @@ css = """p {
             font-size:14px;
 }"""
 
+response_text = request_get(url)
+response = unpack_response(response_text)
+random.shuffle(response)
+
+carousels = substitute_image_pack(carousel_item_template, main_image_template, thumb_image_template, response)
+
 html = Template(template_html_base(base))
 html = Template(update_template(html, "head", head))
 html = Template(update_template(html, "body", body))
 html = Template(update_template(html, "header", header))
 html = Template(update_template(html, "section", section))
+html = Template(update_template(html, "carousels", carousels))
 html = update_template(html, "footer", footer)
-# html = html.template
-
-# print(html)
-
-# html = html_base(head, body).substitute(header = header_template, section= section_template, footer = footer_template)
 
 os.makedirs('html/assets/img', exist_ok=True)
 os.makedirs('html/assets/css', exist_ok=True)
@@ -314,5 +205,5 @@ with open('html/assets/img/icon.svg', 'w') as f:
 with open('html/assets/css/style.css', 'w') as f:
     f.write(css)
 
-with open('html/index.html', 'w') as f:
+with open('html/index.html', 'w', encoding='utf-8') as f:
     f.write(html)
