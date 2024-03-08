@@ -1,12 +1,50 @@
 from string import Template
 
-def update_template(string_template, name, new_string):
-    return string_template.safe_substitute({name: new_string})
+def update_template(html_template, name, new_string):
+    """Esta funcion substituye los datos de un template
+    Parameters
+    ----------
+    string_template: [Template]
+        Template de html a modificar
+    name: [str]
+        String con el nombre del identificador a modificar
+    new_string: [str]
+        String con los datos a reemplazar
+    Returns
+    ----------
+    [str]
+        Retorna un string de un html
+    """
+    return html_template.safe_substitute({name: new_string})
 
 def template_html_base(base):
+    """Esta funcion substituye los datos de un template
+    Parameters
+    ----------
+    base: [str]
+        String con los datos a reemplazar
+    Returns
+    ----------
+    [str]
+        Retorna un string con la base de un html modificable
+    """
     return update_template(Template("$base"), "base", base)
 
 def image_pack_stringify(main_image_template, thumb_image_template, image_pack):
+    """Esta funcion transforma datos de imagenes en un string de html
+    Parameters
+    ----------
+    main_image_template: [str]
+        Template con los indicadores a reemplazar para una imagen principal
+    thumb_image_template: [str]
+        Template con los indicadores a reemplazar para una imagen secundaria
+    image_pack: [list]
+        Listado de diccionarios con datos de imagenes
+    Returns
+    ----------
+    [str]
+        Retorna un string con el html de hasta 6 imagenes contiguas
+    """
     new_strings = []
     i = 0
     for image in image_pack:
@@ -29,6 +67,22 @@ def image_pack_stringify(main_image_template, thumb_image_template, image_pack):
     return "\n".join(new_strings)
 
 def substitute_image_pack(carousel_item_template, main_image_template, thumb_image_template, image_pack):
+    """Esta funcion transforma datos de imagenes en un string de html
+    Parameters
+    ----------
+    carousel_item_template: [str]
+        Template con los indicadores a reemplazar para un item de carousel
+    main_image_template: [str]
+        Template con los indicadores a reemplazar para una imagen principal
+    thumb_image_template: [str]
+        Template con los indicadores a reemplazar para una imagen secundaria
+    image_pack: [list]
+        Listado de diccionarios con datos de imagenes
+    Returns
+    ----------
+    [str]
+        el contenido de los multiples carousel items que pueden ser creados
+    """
     carousels = []
     active = True
     while (image_pack != []):

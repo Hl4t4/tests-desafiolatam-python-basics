@@ -1,3 +1,4 @@
+#template para la base del html
 base = """<!DOCTYPE html>
 <html lang="es">
 \t<head>
@@ -8,6 +9,7 @@ base = """<!DOCTYPE html>
 \t</body>
 </html>"""
 
+#Template del head del html
 head = """<meta charset="UTF-8">
         <meta name="description" content="Aves de Chile / Birds from Chile">
         <meta name="keywords" content="Aves, Birds, Chile">
@@ -20,6 +22,18 @@ head = """<meta charset="UTF-8">
         <link rel="stylesheet" href="assets/css/style.css">
         <title>Aves de Chile / Birds from Chile</title>"""
 
+#Template para el body del html
+body = """<header id="inicio" class="container-fluid bg-danger text-white">
+        \t$header
+        </header>
+        <section id="centro" class="container-fluid bg-secondary-subtle text-secondary-subtle">
+        \t$section
+        </section>
+        <footer id="contacto" class="container-fluid bg-danger text-white px-2 px-md-5">
+        \t$footer
+        </footer>"""
+
+#Template para el header del html
 header ="""<nav class = "navbar navbar-dark navbar-expand-lg px-md-5">
             \t<a class="navbar-brand ps-md-5" href="#"><i class="fa-solid fa-dove fa-xl px-md-3 text-light"> BFC</i></a>
             \t<button class="navbar-toggler navbar-white navbar-button-color" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,6 +48,7 @@ header ="""<nav class = "navbar navbar-dark navbar-expand-lg px-md-5">
             \t</div>
             </nav>"""
 
+#Template para una section del html
 section ="""<div class="row py-5">
             \t<div class="col">
             \t<h1 class="text-center pb-4">Bienvenidos a Birds from Chile (BFC)!</h1>
@@ -45,6 +60,7 @@ section ="""<div class="row py-5">
             \t</div>
             </div>"""
 
+#Template para un item del carousel del html
 carousel_item_template="""$tabs<div class="carousel-item $active" data-bs-interval="3000">
                     \t\t\t<div class="container-fluid">
                     \t\t\t\t<div class="row">
@@ -55,6 +71,7 @@ carousel_item_template="""$tabs<div class="carousel-item $active" data-bs-interv
                     \t\t\t</div>
                     \t\t</div>"""
 
+#Template para una imagen principal con sus datos dentro de un carousel
 main_image_template = """<div class="col-md-8 col-xs-12 col-sm-12 col-12 border border-danger px-0 text-center">
                     \t\t\t\t\t\t<img $lazy class="img-fluid pb-3" src="$full" alt="$uid">
                     \t\t\t\t\t\t<h2>Nombre Especie: <i>$spanish</i></h2>
@@ -64,6 +81,7 @@ main_image_template = """<div class="col-md-8 col-xs-12 col-sm-12 col-12 border 
                     \t\t\t\t\t<div class="col-md-4 col-xs-12 col-sm-12 col-12 mt-md-0 mt-sm-3 mt-3">
                     \t\t\t\t\t\t<div class="row d-flex h-100 ps-md-3 ps-sm-1 ps-1 row-gap-2 vertical-row">"""
 
+#Template para una imagen secundaria con sus datos dentro de un carousel
 thumb_image_template = """\t\t\t\t\t\t\t\t\t\t\t\t<div class="row $last border border-danger ps-0 mx-0">
                     \t\t\t\t\t\t\t\t<div $lazy class="col-7 px-0">
                     \t\t\t\t\t\t\t\t\t<img class="img-fluid" src="$thumb" alt="$uid">
@@ -75,6 +93,7 @@ thumb_image_template = """\t\t\t\t\t\t\t\t\t\t\t\t<div class="row $last border b
                     \t\t\t\t\t\t\t\t</div>
                     \t\t\t\t\t\t\t</div>"""
 
+#Template para el footer del html
 footer = """<div class="row text-light py-md-4 py-4 pb-2 px-1 px-md-5">
             \t<div class="col-6 text-start ps-2 ps-md-5">
             \t\t<i class="fa-solid fa-dove fa-2xl text-light"> BFC</i>
@@ -94,14 +113,3 @@ footer = """<div class="row text-light py-md-4 py-4 pb-2 px-1 px-md-5">
             \t\t</a>
             \t</div>
             </div>"""
-
-
-body = """<header id="inicio" class="container-fluid bg-danger text-white">
-        \t$header
-        </header>
-        <section id="centro" class="container-fluid bg-secondary-subtle text-secondary-subtle">
-        \t$section
-        </section>
-        <footer id="contacto" class="container-fluid bg-danger text-white px-2 px-md-5">
-        \t$footer
-        </footer>"""
