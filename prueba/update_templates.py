@@ -43,8 +43,10 @@ def substitute_image_pack(carousel_item_template, main_image_template, thumb_ima
         images = update_template(Template(carousel_item_template), "images", images)
         if active:
             images = update_template(Template(images), "active", "active")
+            images = update_template(Template(images), "tabs", "")
             active = False
         else:
+            images = update_template(Template(images), "tabs", "\t\t\t\t\t\t\t\t")
             images = update_template(Template(images), "active", "")
             images = update_template(Template(images), "lazy", 'loading="lazy"') #Agregado para que las imagenes carguen solo de forma lazy
         carousels.append(images)
